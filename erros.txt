@@ -1,0 +1,7 @@
+1802/1805A Cross-Assembler (Portable) Ver 2.6+
+Copyright (c) 1985 William C. Colley, III
+fixes for LCC/Windows by HRJ update Jan 2022
+A18 source_file | -l list_file | -o/-m/-b object_file 
+
+Warning -- Extra Source File Ignored
+4 Error(s)

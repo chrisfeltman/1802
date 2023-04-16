@@ -86,7 +86,9 @@ LINK EQU 6
 	ORG 0000h
 
 boot_vect:
-	lbr init
+	;lbr init
+	load PC, init
+	sex PC
 
 ;   standard call convention notes
 ;======================================================================
@@ -400,6 +402,8 @@ init:
 	;load INT int_vect
 	load CALLR, sub_call
 	load RETR, sub_ret
+	call init_sevenseg
+	call init_lcd
 	load PC, main
 	sep PC
 

@@ -73,7 +73,7 @@ SCROLL_RIGHT	EQU $0018     ;
 
 ;==================== standard system reg settings ===================
 
-TOPSTACK SET 07ffh	; top of our 32K of RAM
+TOPSTACK SET 01ffh	; top of our 32K of RAM
 PC EQU 3
 SP EQU 2
 INT EQU 1
@@ -86,7 +86,7 @@ LINK EQU 6
 	ORG 0000h
 
 boot_vect:
-	br init
+	lbr init
 
 ;   standard call convention notes
 ;======================================================================
@@ -160,6 +160,16 @@ delay_exit:
 
 	retn
 
+;====================== init 7 seg system call ===========================================
+init_sevenseg:
+	load RA, sevenseg_out
+	sex RA
+	out SEVEN_SEG
+	retn
+sevenseg_out:
+	db 0
+
+
 ;====================== init LCD system call =============================================
 ; clobbers RA, RB, D ... no regrets, deal with it
 ; you lose 10 bytes of mem if you want the display
@@ -178,9 +188,7 @@ init_lcd:
 init_lcd_loop:
 	sex RB
 	out LCD_CMD			; send next setup cmd to LCD controller
-	;dec RB
-	;out SEVEN_SEG
-
+	
 	ldi 1				; worst case delay scenario for LCD commands
 	plo RA				; not all take this long, but we are only doing this once
 	call delay
@@ -253,6 +261,102 @@ char_count:   ; keep count of output for auto-scroll
 	db 0
 lcd_cmd_byte:
 	db 0
+
+;================================ hex to ascii system call ==============================
+; input: hex value in A.0
+; clobbers: RA, D
+; returns: ASCII in hex_to_ascii_value
+
+hex_to_ascii:
+
+	sex R2   	; push RB
+	ghi RB
+	stxd 
+	glo RB
+	str R2
+
+	load RB, hex_to_ascii_value
+	ldi 0
+	str RB	; init mem buffer to 00
+	inc RB
+	str RB
+	dec RB
+
+	glo RA		
+	ani 0f0h	; get hi nybble only
+	shr
+	shr
+	shr
+	shr			; shift right 4x to lo nybble
+	phi RA		; stash orig value
+	sdi 09h		; subtract 9
+	bnf add_37	; if >-= 10, add 0x37
+	ghi RA		; retrieve orig value
+	adi 30h		; convert to ascii 
+	br store_hi_ascii_char
+	
+
+add_37:
+	ghi RA			; retrieve orig value 
+	adi 37h 		; convert to ascii
+
+store_hi_ascii_char:	
+	str RB		; store in hex_to_ascii_value [0]
+
+	inc RB		; go to next ascii char slot
+
+	glo RA		
+	ani 0fh		; get the lo nybble only
+	phi RA		; stash orig value
+	sdi 09h		; subtract 9
+	bnf add_37_2	; if >-= 10, add 0x37
+	ghi RA		; retrieve orig value 
+	adi 30h   	; convert to ascii
+	br store_lo_ascii_char
+
+add_37_2:
+	ghi RA		; retrieve orig value
+	adi 37h		; convert to ascii
+
+store_lo_ascii_char:
+	str RB		; store in hex_to_ascii_value [1]
+
+	ldxa 		; restore RB
+	plo RB
+	ldn R2
+	phi RB
+	retn
+
+hex_to_ascii_value:
+	db 0
+	db 0
+	db 0
+
+
+
+
+;================================ scroll display system call ============================
+; clobbers D
+
+scroll_display:
+
+	sex R2
+	ghi RB
+	stxd 
+	glo RB
+	str R2
+	sex RB
+	load RB, lcd_cmd_byte
+	ldi SCROLL_RIGHT  ;send a scroll command 
+	str RB
+	out LCD_CMD
+	sex R2
+	ldxa 
+	plo RB
+	;ldn R2
+	ldxa
+	phi RB
+	retn
 
 ;================================ clear display system call ============================
 ; clobbers D, RA, RB, X

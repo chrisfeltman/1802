@@ -404,8 +404,7 @@ init:
 	load RETR, sub_ret
 	call init_sevenseg
 	call init_lcd
-	load PC, main
-	sep PC
+	call main
 
 ;=========================   end init ===========================================
 

@@ -14,6 +14,7 @@ main:
 	load RB, count
 	ldn RB
 	plo RA
+	load RB, hex_to_ascii_value
 	call hex_to_ascii
 	load RA, hex_to_ascii_value
 
@@ -39,6 +40,12 @@ out2:
 	db 0
 count:
 	db 0
+
+hex_to_ascii_value:
+	db 0
+	db 0
+	db 0
+
 
 	end
 

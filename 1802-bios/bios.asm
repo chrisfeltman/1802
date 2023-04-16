@@ -265,19 +265,13 @@ lcd_cmd_byte:
 	db 0
 
 ;================================ hex to ascii system call ==============================
-; input: hex value in A.0
+; input: hex value in A.0, pointer to output buffer in RB
 ; clobbers: RA, D
 ; returns: ASCII in hex_to_ascii_value
 
 hex_to_ascii:
 
-	sex R2   	; push RB
-	ghi RB
-	stxd 
-	glo RB
-	str R2
-
-	load RB, hex_to_ascii_value
+	
 	ldi 0
 	str RB	; init mem buffer to 00
 	inc RB
@@ -322,17 +316,8 @@ add_37_2:
 
 store_lo_ascii_char:
 	str RB		; store in hex_to_ascii_value [1]
-
-	ldxa 		; restore RB
-	plo RB
-	ldn R2
-	phi RB
 	retn
 
-hex_to_ascii_value:
-	db 0
-	db 0
-	db 0
 
 
 

@@ -73,7 +73,7 @@ SCROLL_RIGHT	EQU $0018     ;
 
 ;==================== standard system reg settings ===================
 
-TOPSTACK SET 01ffh	; top of our 32K of RAM
+TOPSTACK SET 07ffh	; top of our 32K of RAM
 PC EQU 3
 SP EQU 2
 INT EQU 1

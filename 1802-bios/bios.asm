@@ -90,6 +90,59 @@ boot_vect:
 	load PC, init
 	sep PC
 
+;=============================== task context storage =================
+;
+; this kernel will eventually support 8 concurrent tasks
+; external interrupt will handle task switching since there is no 
+; internal timer or software interrupt facilities
+; task switch signal will be triggered by an attiny84 or a 555 timer,
+; whichever proves to be simpler to implement
+;     
+; task will only switch if there are other tasks that are waiting to run 
+; context will save R0 - RF, then D, then T, then a byte that includes the 
+; carry flag in B0 and perhaps other bits that might be useful 
+
+TASK_CONTEXT_BLOCK_SZ equ 35
+
+task_context_0: 
+	blk TASK_CONTEXT_BLOCK_SZ 
+task_context_1: 
+	blk TASK_CONTEXT_BLOCK_SZ 
+task_context_2: 
+	blk TASK_CONTEXT_BLOCK_SZ 
+task_context_3: 
+	blk TASK_CONTEXT_BLOCK_SZ 
+task_context_4: 
+	blk TASK_CONTEXT_BLOCK_SZ
+task_context_5: 
+	blk TASK_CONTEXT_BLOCK_SZ 
+task_context_6: 
+	blk TASK_CONTEXT_BLOCK_SZ
+task_context_7: 
+	blk TASK_CONTEXT_BLOCK_SZ
+
+
+task_context_pointers:
+	dw task_context_0 
+	dw task_context_1
+	dw task_context_2
+	dw task_context_3
+	dw task_context_4
+	dw task_context_5
+	dw task_context_6
+	dw task_context_7
+	
+current_task_ptr:
+	dw task_context_0
+
+save_task_context:
+	retn
+
+load_task_context:
+	retn
+
+
+
 ;   standard call convention notes
 ;======================================================================
 ;  April, 2023
@@ -233,7 +286,7 @@ output_string_loop:
 	sex RA	; RA is our output pointer, X changes to RB to check count, so always reset
 	load RB, char_count
 	ldn RA
-	bz output_string_done
+	lbz output_string_done
 	out LCD_CHAR
 
 	ldn RB; get char count
@@ -252,9 +305,10 @@ output_string_loop:
 	load RB, lcd_cmd_byte
 	ldi SCROLL_RIGHT  ;send a scroll command 
 	str RB
+
 	out LCD_CMD
 
-	br output_string_loop
+	lbr output_string_loop
 
 output_string_done:
 	retn
@@ -316,6 +370,7 @@ add_37_2:
 
 store_lo_ascii_char:
 	str RB		; store in hex_to_ascii_value [1]
+	dec RB		; reset RB to point to first value
 	retn
 
 

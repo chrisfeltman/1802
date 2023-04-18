@@ -162,11 +162,13 @@ load_task_context:
 sub_call_ret:
 	sep PC
 sub_call:
-	SEX SP 		    ;SET R(X)
-	GHI LINK
-	STXD                ;SAVE THE CURRENT LINK ON
-	GLO LINK
-	STXD                ;THE STACK
+	
+	GHI LINK             
+	str R2				;SAVE THE CURRENT LINK ON the stack		
+	dec R2
+	GLO LINK               
+	str r2
+	dec r2
 	GHI PC
 	PHI LINK
 	GLO PC
@@ -186,12 +188,12 @@ sub_ret:
 	GHI LINK            ;recover calling program return addr
 	PHI PC
 	GLO LINK
-	PLO PC
-	SEX SP
-	INC SP              ;SET THE STACK POINTER
-	LDXA
+	PLO PC           
+	inc R2				;SET THE STACK POINTER
+	ldn R2
+	inc R2
 	PLO LINK            ;RESTORE THE CONTENTS OF
-	LDX
+	ldn R2
 	PHI LINK            ;LINK
 	BR sub_ret_ret
 

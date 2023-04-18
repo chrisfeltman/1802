@@ -12,7 +12,29 @@ main:
 	call show_count
 	call show_even_odd
 	call verify_stackptr
-	lbr main
+
+	; test self-modifying code .. GULP!!!!
+
+	load RA, main
+	load RB, dynamic_branch_target
+
+	; you shouldn't be doing this ... 
+
+	ghi RA
+	str RB		; self modify dynamic br target hi byte
+	inc RB
+	glo RA
+	str RB		; self modify dynamic br target lo byte
+
+	; umm, are you sure about this? this is crazy ... 
+	; you've got an embedded opcode here, and a label for a data byte 
+	; that is IN THE INSTRUCTION STREAM!!!!
+
+	db 0c0h					; C0 = long branch to ....
+dynamic_branch_target:
+	dw 0000h				; whatever gets written here
+
+	;lbr main
 
 
 verify_stackptr:
@@ -43,10 +65,9 @@ verify_stackptr:
 
 	
 show_even_odd:
-	load RA, odd_flag
+
 	ldn RA
-	xri 1
-	str RA
+	ani 1
 	bnz im_odd
 	load RA, even_msg
 	br output_even_odd_msg
@@ -67,10 +88,10 @@ show_count:
 	str RA
 	sex RA
 	out SEVEN_SEG
+	dec RA			; put RA back for even/odd call
 	retn
 
-odd_flag:
-	db 0
+
 
 odd_msg: 
 	text "I'm odd"
@@ -92,8 +113,8 @@ stack_msg:
 	text "Stack ptr: "
 	db 0
 
-d_msg:
-	text "D: "
+x_msg:
+	text "X: "
 	db 0
 
 hex_to_ascii_value:

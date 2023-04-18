@@ -273,9 +273,13 @@ init_msg:
 	text "1802 COSMAC Microkernel BIOS, CF 2023"
 	db 0
 
+
+
+
 ;========================== output string system call ==================================
 ; RA -> output string terminated by $00
 ; clobbers: D, X, RB
+
 
 output_string:
 	load RB, char_count ; set char count to 0
@@ -317,6 +321,26 @@ char_count:   ; keep count of output for auto-scroll
 	db 0
 lcd_cmd_byte:
 	db 0
+
+
+;================================ set_x_dynamic system_call
+; input: x in A.0
+; clobbers: RB
+; WARNING: this routine contains self-modifying code!!!
+; can copy and use inline but
+; DO NOT USE as a subroutine until I modify call and retn routines to use explicit R2
+; instead of X 
+
+set_x_dynamic:
+	load RB, dynamic_sex_opcode
+	glo RA
+	adi 0E0h   ; E(x) is SEX opcode 
+	str RB
+
+dynamic_sex_opcode:
+	db 0;
+
+	retn;
 
 ;================================ hex to ascii system call ==============================
 ; input: hex value in A.0, pointer to output buffer in RB
